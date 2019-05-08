@@ -1,40 +1,41 @@
 import Comentario from '../m/Comentario';
 import PopUp from '../c/PopUp';
-//import SQLite from 'react-native-sqlite-storage';
-
-let SQLite = require('react-native-sqlite-storage');
-let sqlite = SQLite.openDatabase({name: 'db', createFromLocation: '~banco/db.sqlite'});
+import SQLite from 'react-native-sqlite-storage';
 
 export const registrarComentario = (comentario: Comentario) => {
 
-  return new Promise((resolve, reject) => {
+  SQLite.DEBUG(true);
+  SQLite.enablePromise(true);
+
+  let sqlite = SQLite.openDatabase({
+    name: "db",
+    createFromLocation: "../banco/db.sqlite"
+  }).then((stmt) => {
+    console.log("Database open!");
+
     let msg = new PopUp();
 
     if (!comentario) {
       msg.resultado = false;
       msg.texto = 'Comentario invalido!';
-      resolve({resultado: msg.resultado, texto: msg.texto});
+      return msg;
     }
 
-    sqlite.transaction((stmt) => {
-      stmt.executeSql('insert into comentario(tag, nome) values (?, ?);', [],
-        (stmt, retorno) => {
+    stmt.executeSql('insert into comentario(tag, nome) values (\'teste\', \'teste\');', [],
+      (comando, retorno) => {
 
-          if (retorno.rowsAffected > 0) {
-            msg.resultado = true;
-            msg.texto = 'Comentario registrado com sucesso!!!';
-          } else {
-            msg.resultado = false;
-            msg.texto = 'Erro ao registrar novo comentario!!!';
-          }
-
-          resolve({resultado: msg.resultado, texto: msg.texto});
-        }, (e) => {
+        if (retorno.rowsAffected > 0) {
+          msg.resultado = true;
+          msg.texto = 'Comentario registrado com sucesso!!!';
+        } else {
           msg.resultado = false;
-          msg.texto = `${e.message}`;
-
-          resolve({resultado: msg.resultado, texto: msg.texto});
-        })
-    })
+          msg.texto = 'Erro ao registrar novo comentario!!!';
+        }
+        return msg
+      }, (e) => {
+        msg.resultado = false;
+        msg.texto = `${e.toString()}`;
+        return msg
+      })
   })
 };

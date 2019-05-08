@@ -9,6 +9,7 @@ import {
   Keyboard
 } from 'react-native';
 import Comentario from '../m/Comentario';
+import PopUp from '../c/PopUp';
 import {registrarComentario} from '../c/Controlador';
 
 export default class JanelaDois extends Component <Props> {
@@ -52,7 +53,7 @@ export default class JanelaDois extends Component <Props> {
 
     let retorno = registrarComentario(this.state.comentario);
 
-    ToastAndroid.show(retorno.message, ToastAndroid.SHORT);
+    ToastAndroid.show(retorno.texto, ToastAndroid.SHORT);
 
     if (retorno.resultado) {
 

@@ -1,126 +1,50 @@
 import React, {Component} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  ToastAndroid,
-  Keyboard
-} from 'react-native';
-import Comentario from '../m/Comentario';
-import PopUp from '../c/PopUp';
-import {registrarComentario} from '../c/Controlador';
+import {StyleSheet, FlatList, ActivityIndicator, View, Text} from 'react-native';
+import {ListItem, Button} from 'react-native-elements';
+import Sql from '../c/Sql';
 
-export default class JanelaDois extends Component <Props> {
+export default class JanelaDois extends Component {
 
-  state = {
-    comentario: new Comentario(),
-    disableButtonCreate: true,
-    disableColor: '#87D9FF',
-    enableColor: '#2A8AB7',
-    currentButtonColor: '#87D9FF',
-    event: this.props.event,
-  };
-
-  constructor(props: Props) {
-    super(props);
+  constructor() {
+    super();
+    this.state = {
+      isLoading: true,
+      comentarios: [],
+      semComentarios: 'Sem comentarios.\nClique em (+) para comentar!'
+    };
   }
 
-  componentWillMount() {
-    if (!this.state.comentario)
-      return;
+  componentDidMount(): void {
+    const db = new Sql();
 
-    if (''.includes(this.state.comentario.tag))
-      this.setState({disableButtonCreate: true, currentButtonColor: this.state.disableColor});
-    else this.setState({disableButtonCreate: false, currentButtonColor: this.state.enableColor});
+    db.conectar();
+    let teste = db.listarComentario();
+    console.log(teste);
+    db.desconectar();
+
   }
-
-  alterarTag = (tagName: string) => {
-    let comentario = this.state.comentario;
-    if (!comentario)
-      return;
-
-    comentario.tag = tagName;
-    if (''.includes(this.state.comentario.tag))
-      this.setState({comentario, disableButtonCreate: true, currentButtonColor: this.state.disableColor});
-    else this.setState({comentario, disableButtonCreate: false, currentButtonColor: this.state.enableColor});
-  };
-
-  registrarComentario = () => {
-    if (!this.state.comentario)
-      return;
-
-    let retorno = registrarComentario(this.state.comentario);
-
-    ToastAndroid.show(retorno.texto, ToastAndroid.SHORT);
-
-    if (retorno.resultado) {
-
-      this.setState({comentario: new Comentario()});
-
-      Keyboard.dismiss();
-
-      if (this.state.event)
-        this.state.event.emit('onCreateComentario');
-    }
-  };
 
   render() {
-    if (!this.state.comentario)
-      return <Text style={styles.generalFontSize}>Comentario Invalido!</Text>;
-
+    /*    if(this.state.isLoading){
+          return(
+            <View>
+              <ActivityIndicator size="large" color="#0000ff"/>
+            </View>
+          )
+        }
+        if(this.state.comentarios.length === 0){
+          return(
+            <View>
+              <Text>{this.state.semComentarios}</Text>
+            </View>
+          )
+        }*/
     return (
-      <View style={styles.container}>
-        <Text style={[styles.generalFontSize, styles.text]}>Tag:</Text>
-        <TextInput
-          style={[styles.input, styles.generalFontSize]}
-          placeholder='Comentario Nome...'
-          value={this.state.comentario.tag}
-          onChangeText={(text) => this.alterarTag(text)}
-          onSubmitEditing={this.registrarComentario}
-        />
-        <TouchableOpacity
-          style={[styles.buttonContainer, {backgroundColor: this.state.currentButtonColor}]}
-          onPress={this.registrarComentario}>
-          <Text style={[styles.buttonText, styles.generalFontSize]}>Comentar</Text>
-        </TouchableOpacity>
-      </View>
+      <FlatList
+        keyExtractor={this.keyExtractor}
+        data={this.state.comentarios}
+        renderItem={this.renderItem}
+      />
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-    flexDirection: 'row',
-    width: '90%',
-    height: '10%',
-    marginTop: 10,
-  },
-  generalFontSize: {
-    fontSize: 20,
-  },
-  input: {
-    height: 50,
-    width: '45%',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2A8AB7',
-    marginHorizontal: 5,
-  },
-  text: {
-    width: '30%',
-  },
-  buttonContainer: {
-    width: '25%',
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: 'white',
-  },
-});
